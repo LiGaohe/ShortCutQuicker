@@ -9,7 +9,6 @@
 import threading
 from pynput import keyboard, mouse
 import time
-import pyperclip
 
 class KeyboardManager:
     """键盘管理器"""
@@ -35,8 +34,16 @@ class KeyboardManager:
         self.toggle_listener = None
         # 鼠标控制器
         self.mouse_controller = mouse.Controller()
+        # 获取鼠标位置的回调函数
+        self.get_mouse_position_callback = None
+        # 定义获取鼠标位置的组合键 (Ctrl+Shift+F11)
+        self.get_mouse_position_combination = {keyboard.Key.ctrl_l, keyboard.Key.shift_l, keyboard.Key.f11}
         # 在初始化时就启动用于监听启动组合键的监听器
         self._start_toggle_listener()
+    
+    def set_get_mouse_position_callback(self, callback):
+        """设置获取鼠标位置的回调函数"""
+        self.get_mouse_position_callback = callback
     
     def _start_toggle_listener(self):
         """启动专门用于监听启动组合键的监听器"""
@@ -103,6 +110,15 @@ class KeyboardManager:
                 self.current_keys.clear()
                 return False  # 抑制该按键事件
             
+            # 检查是否按下了获取鼠标位置的组合键
+            if self.current_keys.issuperset(self.get_mouse_position_combination):
+                if self.get_mouse_position_callback:
+                    # 在新线程中执行获取鼠标位置，避免阻塞键盘监听
+                    threading.Thread(target=self.get_mouse_position_callback, daemon=True).start()
+                # 清空按键集合以避免重复触发
+                self.current_keys.clear()
+                return False  # 抑制该按键事件
+            
             return True
             
         # 记录当前按下的键
@@ -111,6 +127,15 @@ class KeyboardManager:
         # 检查是否按下了启动/停止监听的组合键
         if self.current_keys.issuperset(self.toggle_key_combination):
             self.toggle_listening()
+            # 清空按键集合以避免重复触发
+            self.current_keys.clear()
+            return False  # 抑制该按键事件
+        
+        # 检查是否按下了获取鼠标位置的组合键
+        if self.current_keys.issuperset(self.get_mouse_position_combination):
+            if self.get_mouse_position_callback:
+                # 在新线程中执行获取鼠标位置，避免阻塞键盘监听
+                threading.Thread(target=self.get_mouse_position_callback, daemon=True).start()
             # 清空按键集合以避免重复触发
             self.current_keys.clear()
             return False  # 抑制该按键事件
@@ -173,6 +198,15 @@ class KeyboardManager:
             self.current_keys.clear()
             return False  # 抑制该按键事件
         
+        # 检查是否按下了获取鼠标位置的组合键
+        if self.current_keys.issuperset(self.get_mouse_position_combination):
+            if self.get_mouse_position_callback:
+                # 在新线程中执行获取鼠标位置，避免阻塞键盘监听
+                threading.Thread(target=self.get_mouse_position_callback, daemon=True).start()
+            # 清空按键集合以避免重复触发
+            self.current_keys.clear()
+            return False  # 抑制该按键事件
+        
         return True
     
     def check_custom_mapping(self, key_str):
@@ -183,15 +217,9 @@ class KeyboardManager:
         # 检查是否匹配任何按键映射
         if key_str in mappings:
             hotkey = mappings[key_str]
-            # 检查是否是获取鼠标位置的特殊指令
-            if hotkey == "GET_MOUSE_POSITION":
-                # 在新线程中获取鼠标位置，避免阻塞键盘监听
-                threading.Thread(target=self.get_mouse_position, daemon=True).start()
-                return True
-            else:
-                # 在新线程中执行快捷键，避免阻塞键盘监听
-                threading.Thread(target=self.execute_hotkey, args=(hotkey,), daemon=True).start()
-                return True
+            # 在新线程中执行快捷键，避免阻塞键盘监听
+            threading.Thread(target=self.execute_hotkey, args=(hotkey,), daemon=True).start()
+            return True
         
         # 获取鼠标点击映射
         mouse_mappings = self.config_manager.get_mouse_mappings()
@@ -204,22 +232,6 @@ class KeyboardManager:
             return True
         
         return False
-    
-    def get_mouse_position(self):
-        """获取鼠标位置并复制到剪贴板"""
-        try:
-            # 获取当前鼠标位置
-            x, y = self.mouse_controller.position
-            
-            # 格式化位置字符串
-            position_str = f"{int(x)},{int(y)}"
-            
-            # 复制到剪贴板
-            pyperclip.copy(position_str)
-            
-            print(f"鼠标位置 {position_str} 已复制到剪贴板")
-        except Exception as e:
-            print(f"获取鼠标位置失败: {e}")
     
     def execute_hotkey(self, hotkey):
         """执行快捷键"""

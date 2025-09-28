@@ -45,6 +45,8 @@ class UIManager:
         # 设置键盘管理器的悬浮窗口回调
         self.keyboard_manager.set_overlay_callback(self.update_overlay_text)
     
+
+    
     def run(self):
         """运行UI"""
         self.create_main_window()
@@ -169,9 +171,7 @@ class UIManager:
         
         # 添加到Treeview
         for key, hotkey in mappings.items():
-            # 特殊处理GET_MOUSE_POSITION映射，显示为"获取鼠标位置"
-            display_hotkey = "获取鼠标位置" if hotkey == "GET_MOUSE_POSITION" else hotkey
-            self.mapping_tree.insert('', tk.END, values=(key, display_hotkey))
+            self.mapping_tree.insert('', tk.END, values=(key, hotkey))
     
     def toggle_listening(self):
         """切换键盘监听状态"""
@@ -324,7 +324,7 @@ class UIManager:
         # 提示信息
         mouse_hint_label = ttk.Label(
             mouse_input_frame, 
-            text="点击输入框后按下相应按键进行录制，鼠标位置格式: X,Y (例如: 100,200)", 
+            text="按下 Ctrl+Shift+F11 获取鼠标位置并复制到剪贴板，鼠标位置格式: X,Y (例如: 100,200)", 
             foreground="blue",
             font=("Arial", 9)
         )
@@ -380,9 +380,7 @@ class UIManager:
         
         # 添加数据到表格
         for key_seq, hotkey in mappings.items():
-            # 特殊处理GET_MOUSE_POSITION映射，显示为"获取鼠标位置"
-            display_hotkey = "获取鼠标位置" if hotkey == "GET_MOUSE_POSITION" else hotkey
-            self.key_mapping_tree.insert('', tk.END, values=(key_seq, display_hotkey))
+            self.key_mapping_tree.insert('', tk.END, values=(key_seq, hotkey))
     
     def load_mouse_mapping_data(self):
         """加载鼠标映射数据到表格"""
@@ -510,12 +508,9 @@ class UIManager:
         key_sequence = item['values'][0]
         hotkey = item['values'][1]
         
-        # 特殊处理GET_MOUSE_POSITION映射，显示原始值
-        display_hotkey = "GET_MOUSE_POSITION" if hotkey == "获取鼠标位置" else hotkey
-        
         # 填充到输入框
         self.key_sequence_var.set(key_sequence)
-        self.hotkey_var.set(display_hotkey)
+        self.hotkey_var.set(hotkey)
     
     def edit_mouse_mapping(self, event):
         """编辑选中的鼠标映射"""
