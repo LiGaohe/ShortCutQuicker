@@ -28,9 +28,7 @@ python main.py
 ```json
 {
     "mappings": {
-        "copy": "ctrl+c",
         "paste": "ctrl+v",
-        "cut": "ctrl+x",
         "undo": "ctrl+z",
         "redo": "ctrl+y"
     }
