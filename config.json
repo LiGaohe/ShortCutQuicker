@@ -1,0 +1,8 @@
+{
+    "mappings": {
+        "paste": "ctrl+v",
+        "undo": "ctrl+z",
+        "redo": "ctrl+y",
+        "请按键...": "GET_MOUSE_POSITION"
+    }
+}
