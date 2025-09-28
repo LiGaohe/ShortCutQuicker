@@ -1,6 +1,5 @@
-# Quicker-like 软件
+# Shortcuts 软件
 
-一个类似于Quicker的快捷键工具，支持自定义按键映射到快捷键功能。
 
 ## 功能特点
 
