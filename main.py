@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Quicker-like软件主程序
+ShortcutsEasier软件主程序
 支持自定义按键映射快捷键功能
 """
 
