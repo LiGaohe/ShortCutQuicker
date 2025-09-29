@@ -66,7 +66,7 @@ class UIManager:
     def create_main_window(self):
         """创建主窗口"""
         self.root = tk.Tk()
-        self.root.title("Quicker-like 软件")
+        self.root.title("ShortcutsEasier 软件")
         self.root.geometry("600x400")
         self.root.resizable(True, True)
         
@@ -100,7 +100,7 @@ class UIManager:
         main_frame.rowconfigure(1, weight=1)
         
         # 标题
-        title_label = ttk.Label(main_frame, text="Quicker-like 软件", font=("Arial", 16, "bold"))
+        title_label = ttk.Label(main_frame, text="ShortcutsEasier 软件", font=("Arial", 16, "bold"))
         title_label.grid(row=0, column=0, pady=(0, 20))
         
         # 状态框架

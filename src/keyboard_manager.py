@@ -217,8 +217,10 @@ class KeyboardManager:
         # 检查是否匹配任何按键映射
         if key_str in mappings:
             hotkey = mappings[key_str]
+            # 记录触发字符的长度
+            trigger_length = len(key_str)
             # 在新线程中执行快捷键，避免阻塞键盘监听
-            threading.Thread(target=self.execute_hotkey, args=(hotkey,), daemon=True).start()
+            threading.Thread(target=self.execute_hotkey_and_delete, args=(hotkey, trigger_length), daemon=True).start()
             return True
         
         # 获取鼠标点击映射
@@ -227,8 +229,10 @@ class KeyboardManager:
         # 检查是否匹配任何鼠标点击映射
         if key_str in mouse_mappings:
             position = mouse_mappings[key_str]
+            # 记录触发字符的长度
+            trigger_length = len(key_str)
             # 在新线程中执行鼠标点击，避免阻塞键盘监听
-            threading.Thread(target=self.execute_mouse_click, args=(position,), daemon=True).start()
+            threading.Thread(target=self.execute_mouse_click_and_delete, args=(position, trigger_length), daemon=True).start()
             return True
         
         return False
@@ -370,3 +374,41 @@ class KeyboardManager:
         """清空输入显示"""
         self.current_input = ""
         self._notify_overlay_update("")
+    
+    def execute_hotkey_and_delete(self, hotkey, delete_length):
+        """执行快捷键并删除触发字符"""
+        # 首先删除触发字符
+        self.delete_trigger_chars(delete_length)
+        
+        # 然后执行快捷键
+        self.execute_hotkey(hotkey)
+    
+    def execute_mouse_click_and_delete(self, position, delete_length):
+        """执行鼠标点击并删除触发字符"""
+        # 首先删除触发字符
+        self.delete_trigger_chars(delete_length)
+        
+        # 然后执行鼠标点击
+        self.execute_mouse_click(position)
+    
+    def delete_trigger_chars(self, length):
+        """删除指定长度的触发字符"""
+        try:
+            # 使用退格键删除触发字符
+            controller = keyboard.Controller()
+            for _ in range(length):
+                controller.press(keyboard.Key.backspace)
+                controller.release(keyboard.Key.backspace)
+                time.sleep(0.01)  # 短暂延迟确保删除操作完成
+            
+            # 同时更新当前输入显示
+            if len(self.current_input) >= length:
+                self.current_input = self.current_input[:-length]
+                self._notify_overlay_update(self.current_input)
+            
+            # 清空按键缓冲区
+            if len(self.key_buffer) >= length:
+                self.key_buffer = self.key_buffer[:-length]
+                
+        except Exception as e:
+            print(f"删除触发字符失败: {e}")
